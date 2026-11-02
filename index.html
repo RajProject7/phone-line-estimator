@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Business Phone Line Cost Estimator</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1b1f24;--muted:#59626d;--line:#d9dde3;--accent:#1d6b4f;--accent-ink:#fff;--warn:#8a4b00;--warn-bg:#fff4e0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171a;--card:#1c2025;--ink:#eceff3;--muted:#a3acb7;--line:#343b44;--accent:#4cc395;--accent-ink:#0d1f17;--warn:#ffd08a;--warn-bg:#3a2a10}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:720px;margin:0 auto;padding:24px 16px 48px}
+h1{font-size:1.5rem;line-height:1.25;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.grid{grid-template-columns:1fr}}
+label{display:block;font-weight:600;font-size:.9rem;margin-bottom:4px}
+.hint{font-weight:400;color:var(--muted);font-size:.8rem;display:block}
+input,select{width:100%;padding:10px 12px;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.presets{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+button{font:inherit;font-size:.82rem;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.result{font-size:1.1rem}
+.big{font-size:2rem;font-weight:700;line-height:1.2}
+.pos{color:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:.92rem;margin-top:8px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:600}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr.pick td{font-weight:700}
+.clock{display:inline-block;background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:6px 10px;font-size:.9rem;margin-bottom:16px}
+.note{color:var(--muted);font-size:.82rem}
+.note li{margin-bottom:4px}
+footer{color:var(--muted);font-size:.8rem;margin-top:24px}
+</style>
+</head>
+<body>
+<main>
+  <h1>Business phone line cost estimator</h1>
+  <p class="sub">Compare what legacy phone lines cost with a cloud phone plan, ahead of the UK landline switch-off.</p>
+  <div class="clock" id="clock" role="status"></div>
+
+  <form class="card" id="f" onsubmit="return false" aria-label="Your phone setup">
+    <div class="grid">
+      <div>
+        <label for="lines">Legacy phone lines today</label>
+        <input id="lines" type="number" min="1" step="1" value="20" inputmode="numeric">
+      </div>
+      <div>
+        <label for="users">People who need a phone</label>
+        <input id="users" type="number" min="1" step="1" value="20" inputmode="numeric">
+      </div>
+      <div>
+        <label for="rental">Monthly rental per line (&pound;)<span class="hint">Change it to match your bill</span></label>
+        <input id="rental" type="number" min="0" step="0.01" value="25.05" inputmode="decimal">
+        <div class="presets" role="group" aria-label="Rental presets">
+          <button type="button" data-r="10.65" aria-pressed="false">&pound;10.65 before the 2026 rises</button>
+          <button type="button" data-r="25.05" aria-pressed="true">&pound;25.05 after October 2026</button>
+        </div>
+      </div>
+      <div>
+        <label for="mins">UK outbound minutes per person, per month<span class="hint">0 if people only receive calls</span></label>
+        <input id="mins" type="number" min="0" step="50" value="600" inputmode="numeric">
+      </div>
+      <div>
+        <label for="mode">Plan prices are charged<span class="hint">Check this with the provider</span></label>
+        <select id="mode"><option value="user" selected>Per person, per month</option><option value="business">Once per business, per month</option></select>
+      </div>
+    </div>
+  </form>
+
+  <section class="card result" aria-live="polite" id="out"></section>
+
+  <section class="card">
+    <strong>All three plans for your setup</strong>
+    <table id="tbl"><thead><tr><th>Plan</th><th class="num">Per month</th><th class="num">Per year</th><th class="num">vs lines (year)</th></tr></thead><tbody></tbody></table>
+  </section>
+
+  <ul class="note">
+    <li>Line rental only. It excludes call charges, VAT, handsets, number porting and any broadband you keep.</li>
+    <li>Legacy line prices (&pound;10.65 rising to &pound;25.05 a line) and the 31 January 2027 deadline come from The Unmuted Founder newsletter. Plan prices come from pinevox.com. Check both before relying on them.</li>
+    <li>Plan fit uses the allowances listed on the site: Basic has no included minutes, Standard 750 landline plus 750 mobile minutes, Premium unlimited UK minutes.</li>
+  </ul>
+  <footer>Unofficial prototype built by Raj Mistry (rajvmistry16@gmail.com) from public information. Not affiliated with any provider.</footer>
+</main>
+<script>
+var PLANS=[{n:"Basic",p:11.90,cap:0},{n:"Standard",p:14.90,cap:1500},{n:"Premium",p:20.90,cap:Infinity}];
+var gbp=new Intl.NumberFormat("en-GB",{style:"currency",currency:"GBP",maximumFractionDigits:0});
+var gbp2=new Intl.NumberFormat("en-GB",{style:"currency",currency:"GBP",minimumFractionDigits:2});
+function pickPlan(m){return m<=0?0:(m<=1500?1:2)}
+function calc(o){
+  var legacy=o.lines*o.rental;
+  var rows=PLANS.map(function(pl,i){var mo=o.mode==="user"?pl.p*o.users:pl.p;return{n:pl.n,mo:mo,yr:mo*12,vs:(legacy-mo)*12,i:i}});
+  var pick=pickPlan(o.mins);
+  return{legacy:legacy,rows:rows,pick:pick};
+}
+function daysTo(){var d=new Date("2027-01-31T00:00:00");var t=new Date();t.setHours(0,0,0,0);return Math.round((d-t)/864e5)}
+function val(id){var v=parseFloat(document.getElementById(id).value);return isFinite(v)&&v>=0?v:0}
+function render(){
+  var o={lines:val("lines"),users:val("users"),rental:val("rental"),mins:val("mins"),mode:document.getElementById("mode").value};
+  var r=calc(o),p=r.rows[r.pick],diff=(r.legacy-p.mo);
+  var out=document.getElementById("out");
+  var verdict=diff>=0?'<span class="big pos">'+gbp.format(diff*12)+' a year cheaper</span>':'<span class="big">'+gbp.format(-diff*12)+' a year more</span>';
+  out.innerHTML=verdict+'<div>The <strong>'+p.n+'</strong> plan fits '+o.mins+' outbound minutes per person. Your legacy lines cost '+gbp.format(r.legacy)+' a month ('+o.lines+' &times; '+gbp2.format(o.rental)+'). '+p.n+' costs '+gbp.format(p.mo)+' a month.</div>';
+  var tb=document.querySelector("#tbl tbody");tb.innerHTML="";
+  r.rows.forEach(function(x){var tr=document.createElement("tr");if(x.i===r.pick)tr.className="pick";
+    tr.innerHTML="<td>"+x.n+(x.i===r.pick?" (suggested)":"")+'</td><td class="num">'+gbp.format(x.mo)+'</td><td class="num">'+gbp.format(x.yr)+'</td><td class="num">'+(x.vs>=0?"saves ":"costs ")+gbp.format(Math.abs(x.vs))+"</td>";tb.appendChild(tr)});
+  var d=daysTo();document.getElementById("clock").textContent=d>0?d+" days until the 31 January 2027 switch-off":"The 31 January 2027 switch-off date has passed";
+  document.querySelectorAll(".presets button").forEach(function(b){b.setAttribute("aria-pressed",String(parseFloat(b.dataset.r)===o.rental))});
+}
+document.getElementById("f").addEventListener("input",render);
+document.querySelectorAll(".presets button").forEach(function(b){b.addEventListener("click",function(){document.getElementById("rental").value=b.dataset.r;render()})});
+render();
+</script>
+</body>
+</html>
